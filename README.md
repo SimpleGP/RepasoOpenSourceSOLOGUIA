@@ -2,6 +2,50 @@
 
 Esta aplicación Spring Boot implementa el registro de unidades de equipo minero solicitado en la PC2. Expone una API REST, persiste los datos en MySQL y aplica las reglas de negocio para identificadores, estado operativo, coordenadas, números de serie duplicados, auditoría y cifrado.
 
+## Guía para crear el proyecto desde IntelliJ IDEA
+
+Usa esta guía para crear una copia de práctica desde la ventana **New Project** mostrada en la imagen. El proyecto generado será una base vacía; después tendrás que agregar las carpetas, clases y configuración que se describen en los pasos de desarrollo más abajo.
+
+### 1. Completar la primera pantalla
+
+En **Generators**, selecciona **Spring Boot** y configura los campos así:
+
+| Campo | Valor |
+|---|---|
+| Name | `caterpillar-mining-platform` |
+| Location | La carpeta donde quieras guardar tu copia |
+| Language | Java |
+| Type | Maven |
+| Group | `com.caterpillar.platform` |
+| Artifact | `caterpillar-mining-platform` |
+| Package name | `com.caterpillar.platform` |
+| JDK | JDK 25 |
+| Java | 25 |
+| Packaging | Jar |
+| Configuration | Properties |
+
+El enunciado exige Java 25 y Spring Boot 3.5.8. Si el generador no ofrece Java 25 o esa versión de Spring Boot, selecciona la versión más cercana para generar el proyecto y luego ajusta `pom.xml` a los valores requeridos. No elijas Java 17 como muestra la imagen.
+
+### 2. Seleccionar dependencias
+
+En la pantalla siguiente agrega:
+
+- Spring Web
+- Spring Data JPA
+- Validation
+- MySQL Driver
+- Spring Boot DevTools (opcional, para desarrollo)
+
+Después de generar el proyecto, agrega la dependencia `springdoc-openapi-starter-webmvc-ui` en `pom.xml` para habilitar Swagger UI.
+
+### 3. Generar y revisar la estructura inicial
+
+Pulsa **Create** y espera a que IntelliJ importe Maven. Revisa que el proyecto tenga `pom.xml`, `src/main/java` y `src/main/resources`. Cambia el nombre de la clase principal a `CaterpillarMiningPlatformApplication` si el generador creó otro nombre.
+
+### 4. Continuar con la solución
+
+Configura `application.properties` para usar el puerto 8080 y la base `caterpillar`. Luego sigue, en orden, las categorías de desarrollo de este README: `shared`, el dominio `mining`, persistencia, aplicación e interfaces REST. Mantén el mismo package raíz `com.caterpillar.platform` para que la clase principal detecte los componentes Spring.
+
 ## Pasos de desarrollo por categoría y carpetas
 
 ### 1. Configuración y arranque del proyecto
