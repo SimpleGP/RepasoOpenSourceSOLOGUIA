@@ -155,6 +155,3 @@ La respuesta exitosa tiene HTTP 201 e incluye `id`, `equipmentUnitId`, todos los
 - No se puede registrar el mismo número de serie dos veces en el mismo sitio. Se permite registrar ese número en otro sitio.
 - Los errores HTTP incluyen `timestamp`, `status`, `error`, `message` y `path`.
 
-## Documentación de la API
-
-Con la aplicación en ejecución, consultar [Swagger UI](http://localhost:8080/swagger-ui.html) o el documento OpenAPI en [http://localhost:8080/api-docs](http://localhost:8080/api-docs).
