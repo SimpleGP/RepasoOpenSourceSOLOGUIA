@@ -47,6 +47,77 @@ Pulsa **Create** y espera a que IntelliJ importe Maven. Revisa que el proyecto t
 
 Configura `application.properties` para usar el puerto 8080 y la base `caterpillar`. Luego sigue, en orden, las categorías de desarrollo de este README: `shared`, el dominio `mining`, persistencia, aplicación e interfaces REST. Mantén el mismo package raíz `com.caterpillar.platform` para que la clase principal detecte los componentes Spring.
 
+## Estructura de carpetas y archivos
+
+Esta es la estructura que se debe crear debajo de `src/main/java/com/caterpillar/platform`. Cada package Java debe coincidir con su carpeta:
+
+```text
+src/main/java/com/caterpillar/platform/
+├── CaterpillarMiningPlatformApplication.java
+├── shared/
+│   ├── domain/model/valueobjects/GeoCoordinate.java
+│   ├── infrastructure/persistence/jpa/AuditableAbstractAggregateRoot.java
+│   ├── infrastructure/persistence/jpa/strategy/
+│   │   └── SnakeCaseWithPluralizedTablePhysicalNamingStrategy.java
+│   └── interfaces/rest/
+│       ├── config/OpenApiConfiguration.java
+│       ├── handlers/GlobalExceptionHandler.java
+│       └── resources/ErrorResource.java
+└── mining/
+    ├── application/internal/commandservices/
+    │   └── MiningEquipmentUnitCommandServiceImpl.java
+    ├── domain/
+    │   ├── exceptions/DuplicateMiningEquipmentUnitException.java
+    │   ├── model/aggregates/MiningEquipmentUnit.java
+    │   ├── model/commands/CreateMiningEquipmentUnitCommand.java
+    │   ├── model/valueobjects/
+    │   │   ├── CatMiningEquipmentUnitId.java
+    │   │   └── OperationStatus.java
+    │   ├── repositories/MiningEquipmentUnitRepository.java
+    │   └── services/MiningEquipmentUnitCommandService.java
+    ├── infrastructure/persistence/jpa/
+    │   ├── adapters/MiningEquipmentUnitRepositoryAdapter.java
+    │   ├── converters/SerialNumberAttributeConverter.java
+    │   └── repositories/MiningEquipmentUnitJpaRepository.java
+    └── interfaces/rest/
+        ├── MiningEquipmentUnitsController.java
+        ├── resources/
+        │   ├── CreateMiningEquipmentUnitResource.java
+        │   └── MiningEquipmentUnitResource.java
+        └── transform/
+            ├── CreateMiningEquipmentUnitCommandFromResourceAssembler.java
+            └── MiningEquipmentUnitResourceFromEntityAssembler.java
+```
+
+### Comandos para crear las carpetas en PowerShell
+
+Primero abre una terminal PowerShell en la carpeta raíz del proyecto (la carpeta que contiene `pom.xml`). Copia y ejecuta este bloque. `New-Item -Force` crea las carpetas que falten y conserva las que ya existan:
+
+```powershell
+$folders = @(
+  'src\main\java\com\caterpillar\platform\shared\domain\model\valueobjects',
+  'src\main\java\com\caterpillar\platform\shared\infrastructure\persistence\jpa\strategy',
+  'src\main\java\com\caterpillar\platform\shared\interfaces\rest\config',
+  'src\main\java\com\caterpillar\platform\shared\interfaces\rest\handlers',
+  'src\main\java\com\caterpillar\platform\shared\interfaces\rest\resources',
+  'src\main\java\com\caterpillar\platform\mining\application\internal\commandservices',
+  'src\main\java\com\caterpillar\platform\mining\domain\exceptions',
+  'src\main\java\com\caterpillar\platform\mining\domain\model\aggregates',
+  'src\main\java\com\caterpillar\platform\mining\domain\model\commands',
+  'src\main\java\com\caterpillar\platform\mining\domain\model\valueobjects',
+  'src\main\java\com\caterpillar\platform\mining\domain\repositories',
+  'src\main\java\com\caterpillar\platform\mining\domain\services',
+  'src\main\java\com\caterpillar\platform\mining\infrastructure\persistence\jpa\adapters',
+  'src\main\java\com\caterpillar\platform\mining\infrastructure\persistence\jpa\converters',
+  'src\main\java\com\caterpillar\platform\mining\infrastructure\persistence\jpa\repositories',
+  'src\main\java\com\caterpillar\platform\mining\interfaces\rest\resources',
+  'src\main\java\com\caterpillar\platform\mining\interfaces\rest\transform'
+)
+New-Item -ItemType Directory -Force -Path $folders
+```
+
+Las carpetas superiores se crean automáticamente junto con las rutas completas. Después crea cada archivo Java de acuerdo con el árbol y copia allí su clase; este comando solo crea directorios vacíos.
+
 ## Pasos de desarrollo por categoría y carpetas
 
 ### 1. Configuración y arranque del proyecto
