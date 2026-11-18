@@ -1,105 +1,136 @@
-# Caterpillar Mining Equipment Units API
+# API de unidades de equipo minero Caterpillar
 
-This Spring Boot application exposes the equipment registration operation required for the Caterpillar Mining PC2 exercise. It stores mining equipment units in MySQL and applies the domain rules for identifiers, operating status, geographic coordinates, serial number uniqueness, auditing, and serial number encryption.
+Esta aplicación Spring Boot implementa el registro de unidades de equipo minero solicitado en la PC2. Expone una API REST, persiste los datos en MySQL y aplica las reglas de negocio para identificadores, estado operativo, coordenadas, números de serie duplicados, auditoría y cifrado.
 
-## Development steps and simulated commit points
+## Pasos de desarrollo por categoría y carpetas
 
-The timeline below simulates ten-minute development increments. Each HTML comment marks where a commit would be made during a timed exercise; no ten-minute wait is required.
+### 1. Configuración y arranque del proyecto
 
-### 00:00 - Create the Spring Boot project
+**Carpetas y archivos:** `pom.xml`, `src/main/resources/application.properties`, `src/main/java/com/caterpillar/platform/CaterpillarMiningPlatformApplication.java`.
 
-Set the Maven coordinates, Java 25, Spring Boot 3.5.8, and the required dependencies for Spring Web, Bean Validation, Spring Data JPA, MySQL, and OpenAPI. Add the application entry point and configure the server to listen on port 8080.
+1. Configurar Java 25 y Spring Boot 3.5.8 en Maven.
+2. Agregar las dependencias de Spring Web, Bean Validation, Spring Data JPA, MySQL y OpenAPI.
+3. Configurar el puerto 8080 y los datos de conexión a MySQL.
+4. Crear la clase principal y habilitar la auditoría de JPA.
 
-<!-- Suggested commit at +00:10: chore: initialize Caterpillar mining platform -->
+**Commit sugerido:** `chore: configurar proyecto y dependencias base`.
 
-### 00:10 - Create the shared bounded context
+<!-- Sugerencia de commit al terminar esta categoría: chore: configurar proyecto y dependencias base -->
 
-Add the reusable `GeoCoordinate` value object with latitude and longitude bounds. Add the audited aggregate base class, JPA auditing configuration, and the physical naming strategy for snake case identifiers and plural table names.
+### 2. Bounded context compartido
 
-<!-- Suggested commit at +00:20: feat(shared): add coordinates, auditing, and naming strategy -->
+**Carpetas:** `src/main/java/com/caterpillar/platform/shared/domain`, `shared/infrastructure` y `shared/interfaces`.
 
-### 00:20 - Model the mining domain
+1. Crear `GeoCoordinate` como value object reutilizable, con validación de latitud entre -90 y 90 y longitud entre -180 y 180.
+2. Crear `AuditableAbstractAggregateRoot` para reutilizar el identificador autogenerado y las fechas de creación y actualización.
+3. Crear la estrategia física de nombres de base de datos para usar snake case y tablas plurales.
+4. Crear recursos y manejadores compartidos para los errores HTTP y la configuración de OpenAPI.
 
-Add the `CatMiningEquipmentUnitId` UUID value object, the `OperationStatus` value object and its allowed values, the `CreateMiningEquipmentUnitCommand`, and the `MiningEquipmentUnit` aggregate root. The aggregate checks required fields, non-negative operating hours, valid coordinates, and generates the business identifier.
+**Commit sugerido:** `feat(shared): agregar coordenadas, auditoria y componentes comunes`.
 
-<!-- Suggested commit at +00:30: feat(mining): model equipment unit aggregate and value objects -->
+<!-- Sugerencia de commit al terminar shared: feat(shared): agregar coordenadas, auditoria y componentes comunes -->
 
-### 00:30 - Add persistence and serial number encryption
+### 3. Dominio de minería
 
-Create the JPA repository and domain repository adapter. The serial number is stored using AES-GCM through a JPA attribute converter and is decrypted when the entity is read. A keyed HMAC-SHA-256 fingerprint plus the assigned mine site has a database unique constraint, so concurrent registrations cannot bypass the duplicate rule.
+**Carpetas:** `src/main/java/com/caterpillar/platform/mining/domain/model`, `domain/services`, `domain/repositories` y `domain/exceptions`.
 
-<!-- Suggested commit at +00:40: feat(mining): persist equipment units and encrypt serial numbers -->
+1. Crear `CatMiningEquipmentUnitId` como identificador de negocio generado con UUID.
+2. Crear `OperationStatus` como value object con los valores `ACTIVE`, `IN_MAINTENANCE` e `INACTIVE`.
+3. Crear `CreateMiningEquipmentUnitCommand` con los datos necesarios para el registro.
+4. Crear `MiningEquipmentUnit` como aggregate root auditable, con campos obligatorios y validación de horas de operación no negativas.
+5. Definir el contrato del servicio de comandos, el contrato del repositorio y la excepción para números de serie duplicados.
 
-### 00:40 - Implement the command application layer
+**Commit sugerido:** `feat(mining): modelar agregado y reglas del dominio`.
 
-Define the domain command service contract and its application implementation. It checks for an existing serial number at the same mine site and persists a new aggregate only when the rule passes.
+<!-- Sugerencia de commit al terminar el dominio: feat(mining): modelar agregado y reglas del dominio -->
 
-<!-- Suggested commit at +00:50: feat(mining): handle equipment registration command -->
+### 4. Persistencia y cifrado
 
-### 00:50 - Define request and response resources
+**Carpetas:** `src/main/java/com/caterpillar/platform/mining/infrastructure/persistence/jpa`.
 
-Create the validated request resource, response resource, and assemblers. Request validation restricts status values, coordinate ranges, required strings, and operating hours. The response includes the generated database and business IDs, decrypted serial number, coordinates, and audit timestamps.
+1. Crear el repositorio Spring Data JPA y el adaptador que implementa el contrato del dominio.
+2. Guardar el número de serie cifrado con AES-GCM mediante un `AttributeConverter`; al leer la entidad, el valor se descifra automáticamente.
+3. Crear una huella HMAC-SHA-256 para el número de serie.
+4. Agregar una restricción única compuesta por `assigned_mine_site` y la huella. Así se rechazan duplicados del mismo sitio incluso ante solicitudes simultáneas.
 
-<!-- Suggested commit at +01:00: feat(api): add equipment resources and assemblers -->
+**Commit sugerido:** `feat(mining): persistir equipos y proteger numeros de serie`.
 
-### 01:00 - Expose the POST endpoint
+<!-- Sugerencia de commit al terminar persistencia: feat(mining): persistir equipos y proteger numeros de serie -->
 
-Add `POST /api/v1/equipment-units`. Successful registrations return HTTP 201 with the created resource. The controller delegates request mapping and business processing to the appropriate layers.
+### 5. Capa de aplicación
 
-<!-- Suggested commit at +01:10: feat(api): expose equipment unit registration endpoint -->
+**Carpeta:** `src/main/java/com/caterpillar/platform/mining/application`.
 
-### 01:10 - Handle errors and document the API
+1. Implementar el servicio de comandos.
+2. Crear el aggregate root desde el comando recibido.
+3. Comprobar si el mismo número de serie ya está registrado en el sitio asignado.
+4. Persistir el agregado cuando se cumplen las reglas.
 
-Add a shared exception handler with JSON error responses for validation failures (400), duplicate serial numbers (409), and unexpected server errors (500). Add OpenAPI metadata and endpoint descriptions in English.
+**Commit sugerido:** `feat(mining): implementar servicio de registro`.
 
-<!-- Suggested commit at +01:20: feat(api): map errors and document OpenAPI endpoint -->
+<!-- Sugerencia de commit al terminar application: feat(mining): implementar servicio de registro -->
 
-### 01:20 - Configure MySQL and database naming
+### 6. Recursos, ensambladores y endpoint
 
-The default connection creates and uses the `caterpillar` database on local MySQL. Override the connection settings with `DATABASE_URL`, `DATABASE_USERNAME`, and `DATABASE_PASSWORD`. Hibernate applies snake case naming and plural table names automatically.
+**Carpeta:** `src/main/java/com/caterpillar/platform/mining/interfaces/rest`.
 
-<!-- Suggested commit at +01:30: chore(config): configure MySQL and persistence naming -->
+1. Crear el recurso de entrada con validaciones para campos obligatorios, estado, coordenadas y horas.
+2. Crear el recurso de respuesta con los identificadores, datos del equipo y fechas de auditoría.
+3. Crear los ensambladores entre recursos, comandos y entidades.
+4. Exponer únicamente `POST /api/v1/equipment-units`.
+5. Responder con HTTP 201 y el recurso creado. Los identificadores se generan en el servidor y no se aceptan en la solicitud.
 
-### 01:30 - Review the deliverable
+**Commit sugerido:** `feat(api): exponer registro de unidades de equipo`.
 
-Review the endpoint contract, DDD layer boundaries, English API messages, response fields, database constraints, and README instructions. Testing is outside the stated scope of the exercise.
+<!-- Sugerencia de commit al terminar interfaces: feat(api): exponer registro de unidades de equipo -->
 
-<!-- Suggested commit at +01:40: docs: complete setup and development walkthrough -->
+### 7. Manejo de errores y documentación
 
-## Requirements
+**Carpetas y archivos:** `src/main/java/com/caterpillar/platform/shared/interfaces/rest`, `src/main/java/com/caterpillar/platform/shared/interfaces/rest/config` y `README.md`.
+
+1. Devolver HTTP 400 para solicitudes inválidas, 409 para números de serie duplicados y 500 para errores inesperados.
+2. Mantener los mensajes de la API en inglés, según las restricciones técnicas del examen.
+3. Configurar la documentación OpenAPI y Swagger UI.
+4. Completar este README con la estructura, reglas, configuración y forma de ejecución del proyecto.
+
+**Commit sugerido:** `docs(api): documentar pasos, errores y contrato REST`.
+
+<!-- Sugerencia de commit al terminar la documentación: docs(api): documentar pasos, errores y contrato REST -->
+
+## Requisitos
 
 - Java 25
-- MySQL 8 or a compatible MySQL server
-- Maven 3.9 or later
+- MySQL 8 o compatible
+- Maven 3.9 o posterior
 
-Create the `caterpillar` database if the MySQL account cannot create databases automatically. The configured JDBC URL creates it when permitted.
+La base de datos se llama `caterpillar`. La URL configurada intenta crearla automáticamente si el usuario de MySQL tiene permisos.
 
-## Configuration
+## Configuración
 
-The default local connection is `jdbc:mysql://localhost:3306/caterpillar`, username `root`, and password `password`. Override these values through environment variables:
+La conexión local predeterminada usa `jdbc:mysql://localhost:3306/caterpillar`, el usuario `root` y la contraseña `password`. Se pueden cambiar con estas variables de entorno en PowerShell:
 
 ```powershell
 $env:DATABASE_URL = "jdbc:mysql://localhost:3306/caterpillar?createDatabaseIfNotExist=true&serverTimezone=UTC"
 $env:DATABASE_USERNAME = "root"
-$env:DATABASE_PASSWORD = "your-password"
-$env:SERIAL_ENCRYPTION_SECRET = "replace-with-a-long-private-secret"
+$env:DATABASE_PASSWORD = "tu-contrasena"
+$env:SERIAL_ENCRYPTION_SECRET = "reemplazar-por-un-secreto-privado-largo"
 ```
 
-The built-in encryption secret is only for local development. Set `SERIAL_ENCRYPTION_SECRET` to a stable private value before storing data that must remain readable across deployments. Changing the secret makes existing encrypted serial numbers unreadable.
+El secreto de cifrado incluido en la configuración es solo para desarrollo local. Define `SERIAL_ENCRYPTION_SECRET` con un valor privado y estable para conservar la lectura de los números ya cifrados. Si el secreto cambia, los valores existentes no podrán descifrarse.
 
-## Run the application
+## Ejecución
 
-From this directory, start the application with:
+Desde la carpeta del proyecto, iniciar la aplicación con:
 
 ```powershell
 mvn spring-boot:run
 ```
 
-The API listens on `http://localhost:8080`.
+La API estará disponible en `http://localhost:8080`.
 
-## Register an equipment unit
+## Solicitud de ejemplo
 
-Send a request to `POST /api/v1/equipment-units`:
+Enviar un `POST` a `/api/v1/equipment-units` con este cuerpo:
 
 ```json
 {
@@ -113,17 +144,17 @@ Send a request to `POST /api/v1/equipment-units`:
 }
 ```
 
-The request does not accept `id` or `equipmentUnitId`; the application generates both. A successful response has HTTP 201 and includes all equipment fields plus `createdAt` and `updatedAt`. `serialNumber` is returned in plaintext by the API and encrypted in the database.
+La respuesta exitosa tiene HTTP 201 e incluye `id`, `equipmentUnitId`, todos los datos del equipo, `createdAt` y `updatedAt`. La respuesta contiene el número de serie descifrado; en la base de datos se guarda cifrado.
 
-## Business rules and errors
+## Reglas de negocio
 
-- `operationStatus` must be `ACTIVE`, `IN_MAINTENANCE`, or `INACTIVE`.
-- Latitude must be from -90 through 90, and longitude from -180 through 180.
-- Model, serial number, and assigned mine site are required.
-- Operating hours cannot be negative.
-- A serial number cannot be registered twice at the same assigned mine site. The same serial number may be used at a different site.
-- Invalid requests return HTTP 400, duplicates return HTTP 409, and unexpected errors return HTTP 500. Error responses contain `timestamp`, `status`, `error`, `message`, and `path`.
+- `operationStatus` debe ser `ACTIVE`, `IN_MAINTENANCE` o `INACTIVE`.
+- La latitud debe estar entre -90 y 90; la longitud, entre -180 y 180.
+- `model`, `serialNumber` y `assignedMineSite` son obligatorios.
+- `hoursOfOperation` no puede ser negativo.
+- No se puede registrar el mismo número de serie dos veces en el mismo sitio. Se permite registrar ese número en otro sitio.
+- Los errores HTTP incluyen `timestamp`, `status`, `error`, `message` y `path`.
 
-## API documentation
+## Documentación de la API
 
-When the application is running, open [Swagger UI](http://localhost:8080/swagger-ui.html) or view the OpenAPI JSON at [http://localhost:8080/api-docs](http://localhost:8080/api-docs).
+Con la aplicación en ejecución, consultar [Swagger UI](http://localhost:8080/swagger-ui.html) o el documento OpenAPI en [http://localhost:8080/api-docs](http://localhost:8080/api-docs).
