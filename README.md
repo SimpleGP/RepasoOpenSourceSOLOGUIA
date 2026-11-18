@@ -163,6 +163,32 @@ $env:SERIAL_ENCRYPTION_SECRET = "reemplazar-por-un-secreto-privado-largo"
 
 El secreto de cifrado incluido en la configuración es solo para desarrollo local. Define `SERIAL_ENCRYPTION_SECRET` con un valor privado y estable para conservar la lectura de los números ya cifrados. Si el secreto cambia, los valores existentes no podrán descifrarse.
 
+## Conectar MySQL Workbench
+
+MySQL Workbench es el cliente gráfico; para que la aplicación funcione también debe estar instalado y activo **MySQL Server**.
+
+1. Abre Workbench y pulsa el botón **+** junto a **MySQL Connections**.
+2. Completa la conexión:
+
+   | Campo | Valor |
+   |---|---|
+   | Connection Name | `Caterpillar Local` |
+   | Connection Method | `Standard (TCP/IP)` |
+   | Hostname | `127.0.0.1` |
+   | Port | `3306` |
+   | Username | `root` |
+
+3. Pulsa **Store in Vault…** e ingresa `password` si no cambiaste la contraseña predeterminada del proyecto. Si configuraste otra contraseña en MySQL Server, usa esa.
+4. Deja **Default Schema** vacío si todavía no existe `caterpillar`; también puedes escribir `caterpillar` cuando la base ya esté creada.
+5. Pulsa **Test Connection** y luego **OK** si la conexión funciona.
+6. Si la base de datos aún no existe, abre una pestaña SQL en Workbench y ejecuta:
+
+   ```sql
+   CREATE DATABASE caterpillar;
+   ```
+
+La aplicación también intenta crear esa base al iniciar, siempre que el usuario de MySQL tenga permisos. Si Workbench no conecta, confirma que el servicio **MySQL Server** esté iniciado y que host, puerto, usuario y contraseña correspondan a tu instalación.
+
 ## Ejecución
 
 Desde la carpeta del proyecto, iniciar la aplicación con:
