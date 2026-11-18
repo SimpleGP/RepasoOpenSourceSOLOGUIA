@@ -24,7 +24,7 @@ En **Generators**, selecciona **Spring Boot** y configura los campos así:
 | Packaging | Jar |
 | Configuration | Properties |
 
-El enunciado exige Java 25 y Spring Boot 3.5.8. Si el generador no ofrece Java 25 o esa versión de Spring Boot, selecciona la versión más cercana para generar el proyecto y luego ajusta `pom.xml` a los valores requeridos. No elijas Java 17 como muestra la imagen.
+El enunciado exige Java 25 y Spring Boot 3.5.8. Si el generador no ofrece Java 25 o esa versión de Spring Boot, selecciona la versión más cercana para generar el proyecto y luego ajusta `pom.xml` a los valores requeridos. No elijas Java 17 como muestra la primera imagen. La segunda imagen muestra Spring Boot 4.1.2; para esta solución usa Spring Boot 3.5.8, tal como pide el examen.
 
 ### 2. Seleccionar dependencias
 
@@ -34,9 +34,10 @@ En la pantalla siguiente agrega:
 - Spring Data JPA
 - Validation
 - MySQL Driver
-- Spring Boot DevTools (opcional, para desarrollo)
+- Lombok
+- Spring Boot DevTools
 
-Después de generar el proyecto, agrega la dependencia `springdoc-openapi-starter-webmvc-ui` en `pom.xml` para habilitar Swagger UI.
+SpringDoc OpenAPI también debe estar agregado. Si el generador no lo ofrece en la lista de dependencias, agrega `springdoc-openapi-starter-webmvc-ui` en `pom.xml` después de crear el proyecto.
 
 ### 3. Generar y revisar la estructura inicial
 
